@@ -6,6 +6,7 @@ export const clubApi = {
   create: (data) => api.post('/clubs', data),
   update: (id, data) => api.put(`/clubs/${id}`, data),
   deactivate: (id) => api.delete(`/clubs/${id}`),
+  joinClub: (clubId) => api.post(`/clubs/${clubId}/join`),
   addMember: (clubId, data) => api.post(`/clubs/${clubId}/members`, data),
   updateMember: (clubId, membershipId, data) => api.put(`/clubs/${clubId}/members/${membershipId}`, data),
   removeMember: (clubId, membershipId) => api.delete(`/clubs/${clubId}/members/${membershipId}`),

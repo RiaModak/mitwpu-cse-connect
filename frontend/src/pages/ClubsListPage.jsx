@@ -10,10 +10,10 @@ import Modal from '../components/ui/Modal';
 import SearchInput from '../components/ui/SearchInput';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
-import { Plus, Users, Crown } from 'lucide-react';
+import { Plus, Users, Crown, UserPlus } from 'lucide-react';
 
 export default function ClubsListPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isStudent, user } = useAuth();
   const navigate = useNavigate();
   const { data: clubs, loading, execute } = useApi(clubApi.getAll);
   const [search, setSearch] = useState('');
@@ -83,8 +83,27 @@ export default function ClubsListPage() {
                   </div>
                 )}
               </div>
-              <div className="mt-2">
+              <div className="mt-2 flex items-center justify-between">
                 <Badge variant={club.isActive ? 'success' : 'gray'}>{club.isActive ? 'Active' : 'Inactive'}</Badge>
+                {isStudent && club.isActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      (async () => {
+                        try {
+                          await clubApi.joinClub(club.id);
+                          toast.success(`Joined ${club.name}!`);
+                          execute({ category: category || undefined, search: search || undefined });
+                        } catch (err) {
+                          toast.error(err.response?.data?.message || 'Failed to join');
+                        }
+                      })();
+                    }}
+                    className="btn-primary text-xs py-1 px-3 flex items-center gap-1"
+                  >
+                    <UserPlus size={12} /> Join
+                  </button>
+                )}
               </div>
             </div>
           ))}

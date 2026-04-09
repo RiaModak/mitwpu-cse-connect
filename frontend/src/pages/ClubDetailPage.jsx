@@ -10,7 +10,7 @@ import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Crown, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, Crown, MessageSquare, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ClubDetailPage() {
@@ -94,6 +94,16 @@ export default function ClubDetailPage() {
     }
   };
 
+  const handleJoinClub = async () => {
+    try {
+      await clubApi.joinClub(id);
+      toast.success('Successfully joined the club!');
+      execute(id);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to join club');
+    }
+  };
+
   if (loading || !club) return <><TopBar title="Club Details" /><LoadingSpinner className="py-24" size={32} /></>;
 
   const roleVariant = (role) => {
@@ -113,8 +123,22 @@ export default function ClubDetailPage() {
           <button onClick={() => navigate('/clubs')} className="flex items-center gap-2 text-gray-500 hover:text-gray-700"><ArrowLeft size={18} /> Back</button>
           <div className="flex gap-2">
             {isAdmin && <button onClick={() => setShowEdit(true)} className="btn-secondary flex items-center gap-1"><Edit size={14} /> Edit</button>}
-            {(isAdmin || isTeacher) && <button onClick={() => setShowAddMember(true)} className="btn-primary flex items-center gap-1"><Plus size={14} /> Add Member</button>}
-            {isStudent && <button onClick={() => setShowPostNotice(true)} className="btn-accent flex items-center gap-1"><MessageSquare size={14} /> Post Notice</button>}
+            {isAdmin && <button onClick={() => setShowAddMember(true)} className="btn-primary flex items-center gap-1"><Plus size={14} /> Add Member</button>}
+            {isStudent && (() => {
+              const isMember = (club.currentMembers || []).some(m => m.prn === user?.studentPrn);
+              const myMembership = (club.currentMembers || []).find(m => m.prn === user?.studentPrn);
+              const isClubHead = myMembership && ['PRESIDENT', 'SECRETARY', 'VICE_PRESIDENT'].includes(myMembership.role);
+              return (
+                <>
+                  {!isMember && (
+                    <button onClick={handleJoinClub} className="btn-primary flex items-center gap-1"><UserPlus size={14} /> Join Club</button>
+                  )}
+                  {isClubHead && (
+                    <button onClick={() => setShowPostNotice(true)} className="btn-accent flex items-center gap-1"><MessageSquare size={14} /> Post Notice</button>
+                  )}
+                </>
+              );
+            })()}
             {isAdmin && <button onClick={() => setShowDeactivate(true)} className="btn-danger flex items-center gap-1"><Trash2 size={14} /> Deactivate</button>}
           </div>
         </div>
@@ -151,7 +175,7 @@ export default function ClubDetailPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={roleVariant(m.role)}>{m.role}</Badge>
-                    {(isAdmin || isTeacher) && (
+                    {isAdmin && (
                       <button onClick={() => handleRemoveMember(m.membershipId)} className="text-danger-400 hover:text-danger-600"><Trash2 size={14} /></button>
                     )}
                   </div>

@@ -12,8 +12,9 @@ import { Plus, CheckCircle, XCircle, Eye, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AchievementsPage() {
-  const { isAdmin, isTeacher, isStudent } = useAuth();
+  const { isAdmin, isTeacher, isStudent, user } = useAuth();
   const { data, loading, execute } = usePaginatedApi(achievementApi.getAll);
+  const { data: myAchievements, loading: myLoading, execute: fetchMy } = useApi(() => achievementApi.getByStudent(user?.studentPrn));
   const [page, setPage] = useState(0);
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
@@ -25,8 +26,12 @@ export default function AchievementsPage() {
   const { register: regVerify, handleSubmit: handleVerifySubmit, reset: resetVerify } = useForm();
 
   const fetchData = useCallback(() => {
-    execute({ page, size: 20, category: category || undefined, status: status || undefined });
-  }, [execute, page, category, status]);
+    if (isStudent) {
+      fetchMy();
+    } else {
+      execute({ page, size: 20, category: category || undefined, status: status || undefined });
+    }
+  }, [execute, fetchMy, isStudent, page, category, status]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -67,9 +72,14 @@ export default function AchievementsPage() {
 
   const statusVariant = (s) => s === 'VERIFIED' ? 'success' : s === 'REJECTED' ? 'danger' : 'warning';
 
+  const achievementList = isStudent
+    ? (myAchievements || []).map((a, i) => ({ ...a, _idx: i }))
+    : (data.content || []);
+  const isLoading = isStudent ? myLoading : loading;
+
   const columns = [
     { key: 'title', label: 'Title', render: (row) => <span className="font-medium">{row.title}</span> },
-    { key: 'studentName', label: 'Student', render: (row) => <span>{row.studentName} ({row.studentPrn})</span> },
+    ...(!isStudent ? [{ key: 'studentName', label: 'Student', render: (row) => <span>{row.studentName} ({row.studentPrn})</span> }] : []),
     { key: 'category', label: 'Category', render: (row) => <Badge variant="info">{row.category}</Badge> },
     { key: 'dateOfAchievement', label: 'Date', render: (row) => row.dateOfAchievement || '-' },
     { key: 'issuingOrganization', label: 'Organization' },
@@ -107,12 +117,12 @@ export default function AchievementsPage() {
         <div className="glass-card">
           <DataTable
             columns={columns}
-            data={data.content || []}
-            loading={loading}
-            page={page}
-            totalPages={data.totalPages || 0}
-            onPageChange={setPage}
-            emptyMessage="No achievements found"
+            data={achievementList}
+            loading={isLoading}
+            page={isStudent ? 0 : page}
+            totalPages={isStudent ? 1 : (data.totalPages || 0)}
+            onPageChange={isStudent ? undefined : setPage}
+            emptyMessage={isStudent ? "You have no achievements yet" : "No achievements found"}
           />
         </div>
       </div>

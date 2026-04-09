@@ -54,7 +54,7 @@ public class StudentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<StudentDetailResponse>> create(
             @Valid @RequestBody CreateStudentRequest request,
             @AuthenticationPrincipal User user,

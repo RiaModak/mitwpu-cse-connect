@@ -75,7 +75,7 @@ public class ClubController {
     }
 
     @PostMapping("/{id}/members")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MembershipResponse>> addMember(
             @PathVariable Long id,
             @Valid @RequestBody AddMemberRequest request,
@@ -85,8 +85,26 @@ public class ClubController {
         return ResponseEntity.ok(ApiResponse.success("Member added", response));
     }
 
+    @PostMapping("/{id}/join")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<MembershipResponse>> joinClub(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user,
+            HttpServletRequest httpRequest) {
+        Student student = studentRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        AddMemberRequest request = new AddMemberRequest();
+        request.setStudentPrn(student.getPrn());
+        request.setRole("MEMBER");
+        int currentYear = java.time.Year.now().getValue();
+        request.setStartYear(currentYear + "-" + (currentYear + 1));
+        request.setJoinedVia("APPLICATION");
+        MembershipResponse response = clubService.addMember(id, request, user.getId(), getIp(httpRequest));
+        return ResponseEntity.ok(ApiResponse.success("Successfully joined club", response));
+    }
+
     @PutMapping("/{id}/members/{membershipId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<MembershipResponse>> updateMember(
             @PathVariable Long id,
             @PathVariable Long membershipId,
@@ -98,7 +116,7 @@ public class ClubController {
     }
 
     @DeleteMapping("/{id}/members/{membershipId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long id,
             @PathVariable Long membershipId,

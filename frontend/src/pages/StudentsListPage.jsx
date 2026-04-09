@@ -88,16 +88,14 @@ export default function StudentsListPage() {
             <option value="">All Years</option>
             {[1, 2, 3, 4].map((y) => <option key={y} value={y}>Year {y}</option>)}
           </select>
-          {(isAdmin || isTeacher) && (
+          {isAdmin && (
             <>
               <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
                 <Plus size={16} /> Add Student
               </button>
-              {isAdmin && (
-                <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
-                  <Upload size={16} /> Import CSV
-                </button>
-              )}
+              <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+                <Upload size={16} /> Import CSV
+              </button>
             </>
           )}
         </div>
