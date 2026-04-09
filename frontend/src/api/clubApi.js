@@ -7,6 +7,7 @@ export const clubApi = {
   update: (id, data) => api.put(`/clubs/${id}`, data),
   deactivate: (id) => api.delete(`/clubs/${id}`),
   requestJoinClub: (clubId) => api.post(`/clubs/${clubId}/join`),
+  getMyJoinRequests: () => api.get('/clubs/join-requests/my'),
   getPendingJoinRequests: () => api.get('/clubs/join-requests/pending'),
   approveJoinRequest: (requestId) => api.put(`/clubs/join-requests/${requestId}/approve`),
   rejectJoinRequest: (requestId, reason) => api.put(`/clubs/join-requests/${requestId}/reject`, null, { params: { reason } }),

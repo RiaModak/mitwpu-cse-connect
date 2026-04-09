@@ -10,7 +10,7 @@ import Modal from '../components/ui/Modal';
 import ConfirmDialog from '../components/ui/ConfirmDialog';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Crown, MessageSquare, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, Crown, MessageSquare, UserPlus, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ClubDetailPage() {
@@ -22,11 +22,25 @@ export default function ClubDetailPage() {
   const [showPostNotice, setShowPostNotice] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const { register, handleSubmit, reset } = useForm();
   const { register: regNotice, handleSubmit: handleNoticeSubmit, reset: resetNotice } = useForm();
   const { register: regEdit, handleSubmit: handleEditSubmit, reset: resetEdit, setValue } = useForm();
 
   useEffect(() => { execute(id); }, [execute, id]);
+
+  // Check if student has a pending request for this club
+  useEffect(() => {
+    if (isStudent) {
+      clubApi.getMyJoinRequests().then(res => {
+        const requests = res.data?.data || res.data || [];
+        const pending = (Array.isArray(requests) ? requests : []).some(
+          r => r.clubId === Number(id) && r.status === 'PENDING'
+        );
+        setHasPendingRequest(pending);
+      }).catch(() => {});
+    }
+  }, [isStudent, id]);
 
   useEffect(() => {
     if (club && showEdit) {
@@ -130,8 +144,13 @@ export default function ClubDetailPage() {
               const isClubHead = myMembership && ['PRESIDENT', 'SECRETARY', 'VICE_PRESIDENT'].includes(myMembership.role);
               return (
                 <>
-                  {!isMember && (
+                  {!isMember && !hasPendingRequest && (
                     <button onClick={handleRequestJoin} className="btn-primary flex items-center gap-1"><UserPlus size={14} /> Request to Join</button>
+                  )}
+                  {!isMember && hasPendingRequest && (
+                    <span className="flex items-center gap-1 text-sm text-warning-600 bg-warning-50 px-4 py-2 rounded-lg">
+                      <Clock size={14} /> Request Pending
+                    </span>
                   )}
                   {isClubHead && (
                     <button onClick={() => setShowPostNotice(true)} className="btn-accent flex items-center gap-1"><MessageSquare size={14} /> Post Notice</button>

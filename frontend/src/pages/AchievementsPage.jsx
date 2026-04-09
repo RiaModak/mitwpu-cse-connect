@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 export default function AchievementsPage() {
   const { isAdmin, isTeacher, isStudent, user } = useAuth();
   const { data, loading, execute } = usePaginatedApi(achievementApi.getAll);
-  const { data: myAchievements, loading: myLoading, execute: fetchMy } = useApi(() => achievementApi.getByStudent(user?.studentPrn));
+  const { data: myAchievements, loading: myLoading, execute: fetchMy } = useApi(achievementApi.getByStudent);
   const [page, setPage] = useState(0);
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
@@ -26,12 +26,12 @@ export default function AchievementsPage() {
   const { register: regVerify, handleSubmit: handleVerifySubmit, reset: resetVerify } = useForm();
 
   const fetchData = useCallback(() => {
-    if (isStudent) {
-      fetchMy();
-    } else {
+    if (isStudent && user?.studentPrn) {
+      fetchMy(user.studentPrn);
+    } else if (!isStudent) {
       execute({ page, size: 20, category: category || undefined, status: status || undefined });
     }
-  }, [execute, fetchMy, isStudent, page, category, status]);
+  }, [execute, fetchMy, isStudent, user?.studentPrn, page, category, status]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

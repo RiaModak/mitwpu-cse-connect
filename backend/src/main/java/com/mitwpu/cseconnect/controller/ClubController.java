@@ -123,6 +123,19 @@ public class ClubController {
         return ResponseEntity.ok(ApiResponse.success("Join request submitted. Awaiting teacher approval.", response));
     }
 
+    @GetMapping("/join-requests/my")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ApiResponse<List<ClubJoinRequestResponse>>> getMyJoinRequests(
+            @AuthenticationPrincipal User user) {
+        Student student = studentRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+        List<ClubJoinRequest> requests = joinRequestRepository.findByStudentIdAndIsDeletedFalse(student.getId());
+        List<ClubJoinRequestResponse> response = requests.stream()
+                .map(this::toJoinRequestResponse)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success("My join requests retrieved", response));
+    }
+
     @GetMapping("/join-requests/pending")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<ClubJoinRequestResponse>>> getPendingJoinRequests() {
