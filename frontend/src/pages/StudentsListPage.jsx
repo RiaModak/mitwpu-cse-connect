@@ -33,7 +33,11 @@ export default function StudentsListPage() {
 
   const handleCreate = async (formData) => {
     try {
-      await studentApi.create(formData);
+      // Clean empty strings to null so backend validation passes for optional fields
+      const cleaned = Object.fromEntries(
+        Object.entries(formData).map(([k, v]) => [k, v === '' || (typeof v === 'number' && isNaN(v)) ? null : v])
+      );
+      await studentApi.create(cleaned);
       toast.success('Student created');
       setShowCreate(false);
       reset();

@@ -25,7 +25,10 @@ export default function TeachersListPage() {
 
   const handleCreate = async (data) => {
     try {
-      await teacherApi.create(data);
+      const cleaned = Object.fromEntries(
+        Object.entries(data).map(([k, v]) => [k, v === '' ? null : v])
+      );
+      await teacherApi.create(cleaned);
       toast.success('Teacher created');
       setShowCreate(false);
       reset();
