@@ -10,6 +10,7 @@ import com.mitwpu.cseconnect.exception.ResourceNotFoundException;
 import com.mitwpu.cseconnect.repository.*;
 import com.mitwpu.cseconnect.service.AuditService;
 import com.mitwpu.cseconnect.service.TeacherService;
+import com.mitwpu.cseconnect.entity.ClubJoinRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class TeacherServiceImpl implements TeacherService {
     private final ClubMembershipRepository membershipRepository;
     private final AchievementRepository achievementRepository;
     private final AnnouncementRepository announcementRepository;
+    private final ClubJoinRequestRepository joinRequestRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditService auditService;
 
@@ -182,11 +184,31 @@ public class TeacherServiceImpl implements TeacherService {
         long pendingVerifications = achievementRepository.countPending();
         long announcementsPosted = announcementRepository.countByPostedBy(userId);
 
+        List<ClubJoinRequest> pendingJoinReqs = joinRequestRepository.findByStatusAndIsDeletedFalse(
+                ClubJoinRequest.JoinRequestStatus.PENDING);
+        List<ClubJoinRequestResponse> joinRequestResponses = pendingJoinReqs.stream()
+                .map(r -> ClubJoinRequestResponse.builder()
+                        .id(r.getId())
+                        .clubId(r.getClub().getId())
+                        .clubName(r.getClub().getName())
+                        .clubCategory(r.getClub().getCategory())
+                        .studentId(r.getStudent().getId())
+                        .studentPrn(r.getStudent().getPrn())
+                        .studentName(r.getStudent().getFullName())
+                        .studentPanel(r.getStudent().getPanel().name())
+                        .studentYear(r.getStudent().getYear())
+                        .status(r.getStatus().name())
+                        .createdAt(r.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+
         return DashboardStatsResponse.builder()
                 .totalStudentsInPanel((long) panelStudents.size())
                 .pendingVerifications(pendingVerifications)
                 .announcementsPosted(announcementsPosted)
                 .panelStudents(panelStudents)
+                .pendingJoinRequests((long) pendingJoinReqs.size())
+                .joinRequests(joinRequestResponses)
                 .build();
     }
 

@@ -91,17 +91,17 @@ export default function ClubsListPage() {
                       e.stopPropagation();
                       (async () => {
                         try {
-                          await clubApi.joinClub(club.id);
-                          toast.success(`Joined ${club.name}!`);
+                          await clubApi.requestJoinClub(club.id);
+                          toast.success(`Join request sent for ${club.name}! Awaiting teacher approval.`);
                           execute({ category: category || undefined, search: search || undefined });
                         } catch (err) {
-                          toast.error(err.response?.data?.message || 'Failed to join');
+                          toast.error(err.response?.data?.message || 'Failed to request');
                         }
                       })();
                     }}
                     className="btn-primary text-xs py-1 px-3 flex items-center gap-1"
                   >
-                    <UserPlus size={12} /> Join
+                    <UserPlus size={12} /> Request to Join
                   </button>
                 )}
               </div>

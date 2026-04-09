@@ -31,6 +31,8 @@ public class DashboardStatsResponse {
     private Long totalStudentsInPanel;
     private Long announcementsPosted;
     private List<StudentSummaryResponse> panelStudents;
+    private Long pendingJoinRequests;
+    private List<ClubJoinRequestResponse> joinRequests;
 
     // Student stats
     private java.math.BigDecimal cgpa;

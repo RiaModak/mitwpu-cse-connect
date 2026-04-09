@@ -229,6 +229,11 @@ public class ClubServiceImpl implements ClubService {
                 .orElse(false);
     }
 
+    @Override
+    public boolean isCurrentMember(Long studentId, Long clubId) {
+        return membershipRepository.existsByStudentIdAndClubIdAndIsCurrentTrue(studentId, clubId);
+    }
+
     private ClubSummaryResponse toSummary(Club club) {
         List<ClubMembership> currentMembers = membershipRepository.findByClubIdAndIsCurrentTrueAndIsDeletedFalse(club.getId());
         String presidentName = null;

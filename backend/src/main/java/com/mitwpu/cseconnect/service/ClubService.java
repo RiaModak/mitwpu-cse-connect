@@ -17,4 +17,5 @@ public interface ClubService {
     ClubNoticeResponse postNotice(Long clubId, PostClubNoticeRequest request, Long studentId);
     List<ClubNoticeResponse> getNotices(Long clubId);
     boolean isClubHead(Long studentId, Long clubId);
+    boolean isCurrentMember(Long studentId, Long clubId);
 }

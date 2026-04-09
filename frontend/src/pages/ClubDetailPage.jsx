@@ -94,13 +94,13 @@ export default function ClubDetailPage() {
     }
   };
 
-  const handleJoinClub = async () => {
+  const handleRequestJoin = async () => {
     try {
-      await clubApi.joinClub(id);
-      toast.success('Successfully joined the club!');
+      await clubApi.requestJoinClub(id);
+      toast.success('Join request submitted! Awaiting teacher approval.');
       execute(id);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to join club');
+      toast.error(err.response?.data?.message || 'Failed to submit join request');
     }
   };
 
@@ -131,7 +131,7 @@ export default function ClubDetailPage() {
               return (
                 <>
                   {!isMember && (
-                    <button onClick={handleJoinClub} className="btn-primary flex items-center gap-1"><UserPlus size={14} /> Join Club</button>
+                    <button onClick={handleRequestJoin} className="btn-primary flex items-center gap-1"><UserPlus size={14} /> Request to Join</button>
                   )}
                   {isClubHead && (
                     <button onClick={() => setShowPostNotice(true)} className="btn-accent flex items-center gap-1"><MessageSquare size={14} /> Post Notice</button>

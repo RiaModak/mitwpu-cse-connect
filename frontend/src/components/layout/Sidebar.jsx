@@ -25,6 +25,7 @@ export default function Sidebar() {
   } else if (isTeacher) {
     navItems.push(
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/students', icon: Users, label: 'Students' },
       { to: '/clubs', icon: Building2, label: 'Clubs' },
       { to: '/achievements', icon: Trophy, label: 'Achievements' },
       { to: '/announcements', icon: Megaphone, label: 'Announcements' }
