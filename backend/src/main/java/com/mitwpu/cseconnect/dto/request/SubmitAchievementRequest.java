@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
@@ -19,6 +20,7 @@ public class SubmitAchievementRequest {
 
     @NotNull(message = "Date of achievement is required")
     @PastOrPresent(message = "Achievement date cannot be in the future")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dateOfAchievement;
 
     private String proofExternalUrl;

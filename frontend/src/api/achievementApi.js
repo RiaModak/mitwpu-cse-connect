@@ -7,7 +7,7 @@ export const achievementApi = {
   submit: (data, proofFile) => {
     const formData = new FormData();
     Object.keys(data).forEach((key) => {
-      if (data[key] !== null && data[key] !== undefined) {
+      if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
         formData.append(key, data[key]);
       }
     });
@@ -15,7 +15,7 @@ export const achievementApi = {
       formData.append('proofFile', proofFile);
     }
     return api.post('/achievements', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
     });
   },
   verify: (id, data) => api.put(`/achievements/${id}/verify`, data),
