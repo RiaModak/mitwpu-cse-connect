@@ -1,0 +1,193 @@
+CREATE DATABASE IF NOT EXISTS cse_connect;
+USE cse_connect;
+
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('ADMIN','TEACHER','STUDENT') NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS students (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNIQUE NOT NULL,
+  prn VARCHAR(10) UNIQUE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  panel ENUM('A','B','C','D','E','F') NOT NULL,
+  year TINYINT NOT NULL,
+  cgpa DECIMAL(4,2) DEFAULT 0.00,
+  attendance_percent DECIMAL(5,2) DEFAULT 0.00,
+  internship_company VARCHAR(255),
+  internship_role VARCHAR(255),
+  internship_start DATE,
+  internship_end DATE,
+  phone VARCHAR(15),
+  github_url VARCHAR(500),
+  linkedin_url VARCHAR(500),
+  profile_photo_url VARCHAR(500),
+  skills TEXT,
+  bio TEXT,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_by BIGINT,
+  updated_by BIGINT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS teachers (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNIQUE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  employee_id VARCHAR(20) UNIQUE NOT NULL,
+  designation VARCHAR(100),
+  phone VARCHAR(15),
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_by BIGINT,
+  updated_by BIGINT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS teacher_panel_assignments (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  teacher_id BIGINT NOT NULL,
+  panel ENUM('A','B','C','D','E','F') NOT NULL,
+  academic_year VARCHAR(9) NOT NULL,
+  is_current BOOLEAN DEFAULT TRUE,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+);
+
+CREATE TABLE IF NOT EXISTS clubs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  category VARCHAR(50),
+  logo_url VARCHAR(500),
+  founded_year YEAR,
+  faculty_advisor VARCHAR(255),
+  is_active BOOLEAN DEFAULT TRUE,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_by BIGINT,
+  updated_by BIGINT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS club_memberships (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  student_id BIGINT NOT NULL,
+  club_id BIGINT NOT NULL,
+  role ENUM('MEMBER','SECRETARY','VICE_PRESIDENT','PRESIDENT') NOT NULL DEFAULT 'MEMBER',
+  start_year VARCHAR(9) NOT NULL,
+  end_year VARCHAR(9) NULL,
+  is_current BOOLEAN DEFAULT TRUE,
+  joined_via ENUM('APPLICATION','DIRECT','SELECTED') DEFAULT 'APPLICATION',
+  notes TEXT,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_by BIGINT,
+  updated_by BIGINT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id),
+  FOREIGN KEY (club_id) REFERENCES clubs(id)
+);
+
+CREATE TABLE IF NOT EXISTS achievements (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  student_id BIGINT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  category ENUM('HACKATHON','CERTIFICATION','PROJECT','PAPER_PUBLICATION',
+                'COMPETITION','INTERNSHIP','OTHER') NOT NULL,
+  description TEXT,
+  date_of_achievement DATE NOT NULL,
+  proof_file_url VARCHAR(500),
+  proof_external_url VARCHAR(500),
+  issuing_organization VARCHAR(255),
+  status ENUM('PENDING','VERIFIED','REJECTED') DEFAULT 'PENDING',
+  verified_by BIGINT NULL,
+  verified_at TIMESTAMP NULL,
+  rejection_reason TEXT NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id),
+  FOREIGN KEY (verified_by) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS announcements (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  posted_by BIGINT NOT NULL,
+  target_audience ENUM('ALL','STUDENTS','TEACHERS','CLUB') NOT NULL DEFAULT 'ALL',
+  target_club_id BIGINT NULL,
+  target_panel ENUM('A','B','C','D','E','F','ALL') DEFAULT 'ALL',
+  is_pinned BOOLEAN DEFAULT FALSE,
+  expires_at TIMESTAMP NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (posted_by) REFERENCES users(id),
+  FOREIGN KEY (target_club_id) REFERENCES clubs(id)
+);
+
+CREATE TABLE IF NOT EXISTS club_notices (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  club_id BIGINT NOT NULL,
+  posted_by_student_id BIGINT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (club_id) REFERENCES clubs(id),
+  FOREIGN KEY (posted_by_student_id) REFERENCES students(id)
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  actor_user_id BIGINT NULL,
+  actor_name VARCHAR(255),
+  actor_role VARCHAR(20),
+  action ENUM('CREATE','UPDATE','DELETE','LOGIN','LOGOUT','VERIFY','REJECT',
+              'BULK_IMPORT','PASSWORD_RESET') NOT NULL,
+  entity_name VARCHAR(100) NOT NULL,
+  entity_id BIGINT NULL,
+  old_value JSON NULL,
+  new_value JSON NULL,
+  description TEXT,
+  ip_address VARCHAR(45),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS academic_records (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  student_id BIGINT NOT NULL,
+  academic_year VARCHAR(9) NOT NULL,
+  semester TINYINT NOT NULL,
+  sgpa DECIMAL(4,2),
+  cgpa DECIMAL(4,2),
+  attendance_percent DECIMAL(5,2),
+  backlogs TINYINT DEFAULT 0,
+  remarks TEXT,
+  recorded_by BIGINT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id)
+);
