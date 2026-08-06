@@ -1,4 +1,4 @@
-# MITWPU CSE Connect
+# CSE Connect
 
 A full-stack university CSE department portal for managing student records, clubs, achievements, and announcements.
 
